@@ -1,0 +1,36 @@
+.tja-editor-button { gap: 5px; width: auto; padding: 3px 7px; font-size: var(--font-smaller); white-space: nowrap; }
+.tja-editor-button span { font-size: 11px; }
+.tja-preview { display: flex; flex-direction: column; height: 100%; padding: 0 !important; overflow: hidden; }
+.tja-preview-toolbar { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--background-modifier-border); }
+.tja-preview-controls { display: flex; align-items: center; gap: 12px; }
+.tja-template-picker { display: flex; align-items: center; gap: 6px; font-size: var(--font-smaller); }
+.tja-template-picker select { max-width: 140px; }
+.tja-preview-toolbar h3 { font-size: var(--font-ui-medium); margin: 0 0 5px; }
+.tja-preview-toolbar p { margin: 0; }
+.tja-preview-toolbar button { flex-shrink: 0; }
+.tja-preview-scroll { flex: 1; min-height: 0; overflow: auto; padding: 12px 20px 28px; background: var(--background-secondary); }
+.resume-pdf-subtitle { color: var(--text-muted); font-size: var(--font-smaller); }
+.resume-pdf-status { font-size: var(--font-smaller); margin-bottom: 16px; }
+.resume-pdf-status p { margin: 6px 0; }
+.resume-pdf-error { color: var(--text-error); }
+.resume-pdf-warning { color: var(--text-warning); }
+.resume-pdf-success { color: var(--text-success); }
+.resume-pdf-page { background: white; color: black; box-shadow: 0 2px 16px #0002; width: 100%; max-width: 816px; margin: 0 auto; aspect-ratio: 612 / 792; overflow: hidden; }
+.resume-pdf-page svg { display: block; width: 100%; height: 100%; background: white; }
+
+.resume-pdf-page.resume-pdf-multipage { aspect-ratio: auto; overflow: visible; background: transparent; box-shadow: none; }
+.resume-pdf-page.resume-pdf-multipage svg { height: auto; aspect-ratio: 612 / 792; margin-bottom: 20px; box-shadow: 0 2px 16px #0002; }
+.tja-preview-controls { flex-wrap: wrap; }
+
+.resume-pdf-status { position: sticky; top: -12px; z-index: 1; background: var(--background-secondary); padding: 8px 0; }
+
+.tja-template-picker input[type="color"] { width: 28px; height: 28px; padding: 2px; border-radius: 50%; cursor: pointer; overflow: hidden; }
+.tja-template-picker input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+.tja-template-picker input[type="color"]::-webkit-color-swatch { border-radius: 50%; border: none; }
+
+.tja-template-picker[hidden] { display: none; }
+
+.tja-export-fields { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; width: 100%; }
+.tja-export-fields label { display: flex; align-items: center; gap: 6px; font-size: var(--font-smaller); }
+.tja-export-fields input[type="text"] { width: 160px; }
+.tja-export-filename { overflow-wrap: anywhere; flex-basis: 100%; }

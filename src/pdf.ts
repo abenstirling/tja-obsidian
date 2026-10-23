@@ -1,0 +1,29 @@
+import {jsPDF} from 'jspdf';
+import {assertResumeFits,RESUME_PAGE} from './shared/resume-layout';
+import {resumePages} from './shared/resume-pagination';
+import type {ResumeTemplateId} from './shared/resume-templates';
+export type ResumeFonts=[string,string,string,string?,string?];
+let fonts:Promise<ResumeFonts>|undefined;
+function binaryFont(bytes:ArrayBuffer){let text='';const data=new Uint8Array(bytes);for(let i=0;i<data.length;i+=16384)text+=String.fromCharCode(...data.subarray(i,i+16384));return btoa(text);}
+async function loadFonts(){fonts??=Promise.all(['LiberationSerif-Regular','LiberationSerif-Bold','LiberationSerif-Italic','NotoSans-Regular','NotoSans-Bold'].map(async name=>{const r=await fetch(`/fonts/${name}.ttf`);if(!r.ok)throw new Error('The PDF font could not load. Please try again.');return binaryFont(await r.arrayBuffer());})) as Promise<ResumeFonts>;try{return await fonts;}catch(e){fonts=undefined;throw e;}}
+// The shared layout is the linter, preview and generation check's single source of truth.
+// Browser memory only: generated PDF bytes are never sent to our server or an AI service.
+export function createPDF(markdown:string,fontData:ResumeFonts,template:ResumeTemplateId='classic',enforceOnePage=true,accentColor?:string){
+ const pages=resumePages(markdown,template,enforceOnePage,accentColor);
+ const error=pages[0].issues.find(issue=>issue.severity==='error');if(error)throw new Error(error.message);
+ const selectedFonts=template==='plumeria'?[fontData[3],fontData[4],fontData[3]]:fontData;
+ if(selectedFonts.slice(0,3).some(font=>!font))throw new Error('The template font could not load.');
+ const doc=new jsPDF({unit:'pt',format:'letter',putOnlyUsedFonts:true,compress:true});
+ for(const [i,style] of ['normal','bold','italic'].entries()){
+  const file=`Resume-${style}.ttf`;doc.addFileToVFS(file,selectedFonts[i]!);doc.addFont(file,'Resume',style);
+ }
+ for(const [index,layout] of pages.entries()){
+ if(index)doc.addPage('letter');
+ for(const rule of layout.rules){doc.setDrawColor(rule.color||'#3a3a3a');doc.setLineWidth(rule.weight||1.2);doc.line(rule.x,rule.y,rule.x+rule.width,rule.y);}
+ for(const line of layout.lines){doc.setFont('Resume',line.font);doc.setFontSize(line.size);doc.setTextColor(line.color);doc.text(line.text,line.x,line.y);}
+ }
+ // A second structural guard prevents future renderer changes from bypassing the linter.
+ if((enforceOnePage&&doc.getNumberOfPages()!==1)||doc.internal.pageSize.getWidth()!==RESUME_PAGE.width||doc.internal.pageSize.getHeight()!==RESUME_PAGE.height)throw new Error('PDF must be exactly one US Letter page.');
+ return doc;
+}
+export async function downloadPDF(markdown:string,title:string,template:ResumeTemplateId='classic'){assertResumeFits(markdown,template);const doc=createPDF(markdown,await loadFonts(),template);doc.save(`${title.replace(/[^\p{L}\p{N} -]/gu,'').trim().slice(0,80)||'resume'}.pdf`);}

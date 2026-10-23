@@ -1,0 +1,9 @@
+node_modules/
+release/
+dist/
+*.zip
+*.pdf
+.env
+.env.*
+.DS_Store
+*.log
