@@ -22,7 +22,8 @@ export default class ResumePDF extends Plugin {
   private actions = new Map<MarkdownView, HTMLElement>();
 
   async onload() {
-    const stored = await this.loadData();
+    const data: unknown = await this.loadData();
+    const stored: Record<string, unknown> = data !== null && typeof data === 'object' ? data as Record<string, unknown> : {};
     this.settings = {
       minimumFill: fillThreshold(stored?.minimumFill),
       folder: typeof stored?.folder === 'string' ? stored.folder : defaults.folder,
@@ -62,7 +63,6 @@ export default class ResumePDF extends Plugin {
   }
 
   onunload() {
-    this.app.workspace.detachLeavesOfType(PREVIEW_TYPE);
     for (const button of this.actions.values()) button.remove();
     this.actions.clear();
   }
@@ -189,7 +189,7 @@ class ResumePreview extends ItemView {
   private sourcePath = '';
   private sourceLeaf?: WorkspaceLeaf;
   private current?: Snapshot;
-  private timer?: ReturnType<typeof setTimeout>;
+  private timer?: number;
   private revision = 0;
   private closed = false;
   private ready = false;
@@ -284,9 +284,6 @@ class ResumePreview extends ItemView {
     });
     const scroll = this.contentEl.createDiv({cls: 'tja-preview-scroll'});
     this.status = scroll.createDiv({cls: 'resume-pdf-status', attr: {'aria-live': 'polite'}});
-    // Fonts mount once; keystrokes only redraw the page and its status.
-    const css = fonts.map((data, index) => `@font-face{font-family:${index < 3 ? 'ResumePDFSerif' : 'ResumePDFSans'};font-style:${index === 2 ? 'italic' : 'normal'};font-weight:${index === 1 || index === 4 ? '700' : '400'};src:url(data:font/ttf;base64,${data}) format('truetype');}`).join('\n');
-    this.contentEl.createEl('style', {text: css});
     this.page = scroll.createDiv({cls: 'resume-pdf-page'});
     this.ready = true;
     this.registerEvent(this.app.workspace.on('editor-change', (editor, info) => {
@@ -319,7 +316,7 @@ class ResumePreview extends ItemView {
   /** Invalidate immediately, so Save never exports a page from before the latest edit. */
   private invalidate() {
     this.revision++;
-    if (this.timer !== undefined) clearTimeout(this.timer);
+    if (this.timer !== undefined) this.contentEl.win.clearTimeout(this.timer);
     this.timer = undefined;
     this.current = undefined;
     if (this.ready) this.saveButton.disabled = true;
@@ -329,7 +326,7 @@ class ResumePreview extends ItemView {
     this.invalidate();
     this.status.empty();
     this.status.createEl('p', {text: 'Updating preview…', cls: 'resume-pdf-subtitle'});
-    this.timer = setTimeout(() => { this.timer = undefined; void this.refresh(source); }, 120);
+    this.timer = this.contentEl.win.setTimeout(() => { this.timer = undefined; void this.refresh(source); }, 120);
   }
 
   private async refresh(source?: string) {
@@ -382,46 +379,38 @@ class ResumePreview extends ItemView {
     this.current = undefined;
     this.saveButton.disabled = true;
     this.filenameLabel.setText('');
-    this.subtitle.setText('Live preview · Waiting for valid Markdown');
+    this.subtitle.setText('Live preview · waiting for valid Markdown');
     this.status.empty();
     this.status.createEl('p', {text: message, cls: 'resume-pdf-error'});
     this.page.empty();
   }
 
   private drawPage(layout: ResumeLayout) {
-    const doc = this.contentEl.ownerDocument;
-    const svg = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const svg = this.page.createSvg('svg');
     svg.setAttribute('viewBox', `0 0 ${layout.page.width} ${layout.page.height}`);
     svg.setAttribute('role', 'img');
     svg.setAttribute('aria-label', 'Live one-page resume preview');
-    this.page.appendChild(svg);
-    const title = doc.createElementNS(svg.namespaceURI, 'title');
+    const title = svg.createSvg('title');
     title.textContent = 'The Jobs Application: Live preview';
-    svg.appendChild(title);
     // Keep the reserved bottom margin empty even while an overflowing draft is shown.
     const clipId = `tja-page-content-${this.page.children.length}`;
-    const defs = doc.createElementNS(svg.namespaceURI, 'defs');
-    const clip = doc.createElementNS(svg.namespaceURI, 'clipPath');
+    const defs = svg.createSvg('defs');
+    const clip = defs.createSvg('clipPath');
     clip.setAttribute('id', clipId);
-    const bounds = doc.createElementNS(svg.namespaceURI, 'rect');
+    const bounds = clip.createSvg('rect');
     for (const [key, value] of Object.entries({x: 0, y: 0, width: layout.page.width, height: layout.page.height - layout.page.bottom})) bounds.setAttribute(key, String(value));
-    clip.appendChild(bounds); defs.appendChild(clip); svg.appendChild(defs);
-    const content = doc.createElementNS(svg.namespaceURI, 'g');
+    const content = svg.createSvg('g');
     content.setAttribute('clip-path', `url(#${clipId})`);
-    svg.appendChild(content);
     for (const rule of layout.rules) {
-      const line = doc.createElementNS(svg.namespaceURI, 'line');
+      const line = content.createSvg('line');
       for (const [key, value] of Object.entries({x1: rule.x, y1: rule.y, x2: rule.x + rule.width, y2: rule.y, stroke: rule.color || '#3a3a3a', 'stroke-width': rule.weight || 1.2})) line.setAttribute(key, String(value));
-      content.appendChild(line);
     }
     for (const line of layout.lines) {
-      const text = doc.createElementNS(svg.namespaceURI, 'text');
+      const text = content.createSvg('text');
       text.setAttribute('textLength', String(line.width));
       text.setAttribute('lengthAdjust', 'spacingAndGlyphs');
-      text.setAttribute('style', 'white-space: pre');
       for (const [key, value] of Object.entries({x: line.x, y: line.y, 'font-family': layout.template === 'plumeria' ? 'ResumePDFSans' : 'ResumePDFSerif', 'font-size': line.size, 'font-weight': line.font === 'bold' ? 700 : 400, 'font-style': line.font === 'italic' ? 'italic' : 'normal', fill: line.color})) text.setAttribute(key, String(value));
       text.textContent = line.text;
-      content.appendChild(text);
     }
   }
 
@@ -435,39 +424,66 @@ class ResumePreview extends ItemView {
 
 class ResumeSettings extends PluginSettingTab {
   constructor(app: App, private plugin: ResumePDF) { super(app, plugin); }
+  getSettingDefinitions() {
+    return [
+      {
+        name: 'Export folder',
+        desc: 'A folder relative to the vault root. Leave blank to save beside each source note.',
+        render: (setting: Setting) => {
+          setting.addText(text => {
+            text.setPlaceholder('Exports/resumes').setValue(this.plugin.settings.folder);
+            text.inputEl.addEventListener('change', () => {
+              void (async () => {
+                try {
+                  const folder = outputFolder(text.getValue());
+                  this.plugin.settings.folder = folder;
+                  await this.plugin.saveData(this.plugin.settings);
+                  text.setValue(folder);
+                } catch (error) {
+                  new Notice(error instanceof Error ? error.message : String(error));
+                  text.setValue(this.plugin.settings.folder);
+                }
+              })();
+            });
+          });
+        }
+      },
+      {
+        name: 'Minimum page fill',
+        desc: 'Warn when content fills less than this percentage of the printable page height.',
+        render: (setting: Setting) => {
+          setting.addSlider(slider => slider
+            .setLimits(1, 100, 1)
+            .setValue(this.plugin.settings.minimumFill)
+            .onChange(async value => {
+              this.plugin.settings.minimumFill = fillThreshold(value);
+              await this.plugin.saveData(this.plugin.settings);
+              for (const leaf of this.app.workspace.getLeavesOfType(PREVIEW_TYPE)) {
+                if (leaf.view instanceof ResumePreview) await leaf.view.refreshPreferences();
+              }
+            }));
+        }
+      },
+      {
+        name: 'Open PDF after export',
+        desc: 'Open the saved PDF in a new Obsidian tab.',
+        render: (setting: Setting) => {
+          setting.addToggle(toggle => toggle.setValue(this.plugin.settings.openAfterExport).onChange(async value => {
+            this.plugin.settings.openAfterExport = value;
+            await this.plugin.saveData(this.plugin.settings);
+          }));
+        }
+      }
+    ];
+  }
   display() {
     this.containerEl.empty();
-    this.containerEl.createEl('h2', {text: 'The Jobs Application'});
+    new Setting(this.containerEl).setName('Export preferences').setHeading();
     this.containerEl.createEl('p', {text: 'The same resume layout as The Jobs Application. Fonts are bundled and export works offline.'});
-    new Setting(this.containerEl).setName('Export folder').setDesc('A folder relative to the vault root. Leave blank to save beside each source note.').addText(text => {
-      text.setPlaceholder('Exports/Resumes').setValue(this.plugin.settings.folder);
-      text.inputEl.addEventListener('change', () => {
-        void (async () => {
-          try {
-            const folder = outputFolder(text.getValue());
-            this.plugin.settings.folder = folder;
-            await this.plugin.saveData(this.plugin.settings);
-            text.setValue(folder);
-          } catch (error) {
-            new Notice(error instanceof Error ? error.message : String(error));
-            text.setValue(this.plugin.settings.folder);
-          }
-        })();
-      });
-    });
-    new Setting(this.containerEl).setName('Minimum page fill').setDesc('Warn when content fills less than this percentage of the printable page height.').addSlider(slider => slider
-      .setLimits(1, 100, 1)
-      .setValue(this.plugin.settings.minimumFill)
-      .setDynamicTooltip()
-      .onChange(async value => {
-        this.plugin.settings.minimumFill = fillThreshold(value);
-        await this.plugin.saveData(this.plugin.settings);
-        for (const leaf of this.app.workspace.getLeavesOfType(PREVIEW_TYPE)) if (leaf.view instanceof ResumePreview) await leaf.view.refreshPreferences();
-      }));
-    new Setting(this.containerEl).setName('Open PDF after export').setDesc('Open the saved PDF in a new Obsidian tab.').addToggle(toggle => toggle.setValue(this.plugin.settings.openAfterExport).onChange(async value => {
-      this.plugin.settings.openAfterExport = value;
-      await this.plugin.saveData(this.plugin.settings);
-    }));
-    this.containerEl.createEl('p', {text: 'Format: # Name, ## Section, ### Role, plain paragraphs, and - bullets. Properties are ignored. Tables, images, links, embeds and code blocks are not supported. PDFs stay at the original font size; shorten the note if it exceeds one page.'});
+    for (const definition of this.getSettingDefinitions()) {
+      const setting = new Setting(this.containerEl).setName(definition.name).setDesc(definition.desc);
+      definition.render(setting);
+    }
+    this.containerEl.createEl('p', {text: 'Use a name heading, section headings, role headings, paragraphs, and bullets. Properties are ignored. Tables, images, links, embeds and code blocks are not supported. The font size stays fixed; shorten the note if it exceeds one page.'});
   }
 }

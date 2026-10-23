@@ -1,6 +1,6 @@
 {
   "name": "tja-obsidian",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -12,16 +12,24 @@
   "scripts": {
     "build": "node build.mjs",
     "check": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "lint": "eslint main.ts note.ts lint.ts src/pdf.ts src/shared/*.ts --max-warnings 0"
   },
   "dependencies": {
     "jspdf": "^4.0.0"
   },
   "devDependencies": {
-    "obsidian": "^1.5.0",
+    "@eslint/js": "^10.0.1",
     "esbuild": "^0.28.2",
+    "eslint": "^10.13.0",
+    "eslint-plugin-obsidianmd": "^0.4.2",
+    "obsidian": "^1.5.0",
+    "pdf-lib": "^1.17.1",
     "typescript": "^5.9.0",
-    "vitest": "^5.0.5",
-    "pdf-lib": "^1.17.1"
+    "typescript-eslint": "^8.72.0",
+    "vitest": "^5.0.5"
+  },
+  "overrides": {
+    "moment": "^2.31.0"
   }
 }

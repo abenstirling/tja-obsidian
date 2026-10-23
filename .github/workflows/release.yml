@@ -1,0 +1,50 @@
+name: Build release assets
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing draft release tag (must match package version)
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Validate draft release and version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const pkg = JSON.parse(fs.readFileSync("package.json")); const manifest = JSON.parse(fs.readFileSync("manifest.json")); if (process.env.RELEASE_TAG !== pkg.version || manifest.version !== pkg.version) throw new Error("Release versions must match");'
+          test "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = true
+          test "$(git rev-parse HEAD)" = "$(git rev-list -n 1 "$RELEASE_TAG")"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+      - uses: actions/attest@v4
+        with:
+          subject-path: |
+            release/resume-pdf/main.js
+            release/resume-pdf/styles.css
+            release/resume-pdf/manifest.json
+      - name: Upload verified assets to draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: gh release upload "$RELEASE_TAG" release/resume-pdf/main.js release/resume-pdf/styles.css release/resume-pdf/manifest.json

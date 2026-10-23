@@ -23,14 +23,14 @@ export function prepareNote(source: string): PreparedNote {
 export function outputFolder(input: string): string {
   const path = input.trim().replace(/\\/g, '/').replace(/\/+$/, '');
   if (!path) return '';
-  if (path.startsWith('/') || path.split('/').some(part => !part || part.startsWith('.') || /[<>:"|?*\u0000-\u001f]/.test(part))) {
+  if (path.startsWith('/') || path.split('/').some(part => !part || part.startsWith('.') || /[<>:"|?*]/.test(part) || Array.from(part).some(char => char.charCodeAt(0) < 32))) {
     throw new Error('Choose a folder inside the vault, such as Exports/Resumes, without hidden folders or parent paths.');
   }
   return path;
 }
 
 export function safeBasename(name: string): string {
-  return name.replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-').replace(/[. ]+$/, '').slice(0, 100) || 'Resume';
+  return Array.from(name, char => char.charCodeAt(0) < 32 || /[<>:"/\\|?*]/.test(char) ? '-' : char).join('').replace(/[. ]+$/, '').slice(0, 100) || 'Resume';
 }
 
 export const starterResume = `# Your Name

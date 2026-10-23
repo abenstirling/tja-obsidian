@@ -12,9 +12,9 @@ function spans(text: string, fallback: ResumeFont): Span[] {
   const result: Span[] = []; let index = 0;
   const pattern = /\*\*([^*]+)\*\*|\*([^*]+)\*/g;
   for (const match of text.matchAll(pattern)) {
-    if (match.index! > index) result.push({text: text.slice(index, match.index), font: fallback});
+    if (match.index > index) result.push({text: text.slice(index, match.index), font: fallback});
     result.push({text: match[1] || match[2], font: match[1] ? 'bold' : 'italic'});
-    index = match.index! + match[0].length;
+    index = match.index + match[0].length;
   }
   if (index < text.length) result.push({text: text.slice(index), font: fallback});
   return result;

@@ -1,6 +1,6 @@
 .tja-editor-button { gap: 5px; width: auto; padding: 3px 7px; font-size: var(--font-smaller); white-space: nowrap; }
 .tja-editor-button span { font-size: 11px; }
-.tja-preview { display: flex; flex-direction: column; height: 100%; padding: 0 !important; overflow: hidden; }
+.workspace-leaf-content .view-content.tja-preview { display: flex; flex-direction: column; height: 100%; padding: 0; overflow: hidden; }
 .tja-preview-toolbar { display: flex; flex: 0 0 auto; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--background-modifier-border); }
 .tja-preview-controls { display: flex; align-items: center; gap: 12px; }
 .tja-template-picker { display: flex; align-items: center; gap: 6px; font-size: var(--font-smaller); }
@@ -34,3 +34,5 @@
 .tja-export-fields label { display: flex; align-items: center; gap: 6px; font-size: var(--font-smaller); }
 .tja-export-fields input[type="text"] { width: 160px; }
 .tja-export-filename { overflow-wrap: anywhere; flex-basis: 100%; }
+
+.resume-pdf-page svg text { white-space: pre; }

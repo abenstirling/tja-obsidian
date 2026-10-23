@@ -26,6 +26,8 @@ class Element {
   checked = false;
   attrs: Record<string, string> = {};
   events = new Map<string, (() => any)[]>();
+  get win() { return globalThis; }
+  createSvg(tag: string) { return this.createEl(tag); }
   get ownerDocument() { return fakeDocument; }
   get namespaceURI() { return 'http://www.w3.org/2000/svg'; }
   createEl(_tag: string, options: any = {}) {
@@ -70,7 +72,7 @@ class Plugin {
   loadData = vi.fn(async () => null);
   saveData = vi.fn(async () => {});
   addCommand(command: any) { this.commands.push(command); }
-  addSettingTab() {}
+  addSettingTab = vi.fn();
   addRibbonIcon = vi.fn();
   registerView(type: string, factory: (leaf: any) => any) { this.viewFactories.set(type, factory); }
   registerEvent() {}
@@ -149,6 +151,37 @@ function host() {
   const plugin = new ResumePDF(app);
   return {app, file, files, buffers, editor, view, openFile, plugin, emit, listeners, previewLeaves, sourceLeaf};
 }
+
+describe('community review regressions', () => {
+  it('leaves workspace panes in place when the plugin unloads', async () => {
+    const {plugin, app, previewLeaves} = host();
+    await plugin.onload();
+    await plugin.preview();
+    expect(previewLeaves).toHaveLength(1);
+    plugin.onunload();
+    expect(app.workspace.detachLeavesOfType).not.toHaveBeenCalled();
+  });
+
+  it('ships preview fonts as CSS and excludes script/style injection from the bundle', () => {
+    const bundle = readFileSync('release/resume-pdf/main.js', 'utf8');
+    const css = readFileSync('release/resume-pdf/styles.css', 'utf8');
+    expect(bundle).not.toMatch(/createElement\(\s*['"](?:script|style)['"]/);
+    expect(bundle).not.toContain('cdnjs.cloudflare.com');
+    expect(css.match(/@font-face/g)).toHaveLength(5);
+    expect(css).toContain('data:font/ttf;base64,');
+    expect(css).toContain('white-space: pre');
+    expect(css).not.toContain('!important');
+  });
+
+  it('validates stored settings and exposes searchable setting definitions', async () => {
+    const {plugin} = host();
+    plugin.loadData.mockResolvedValue({minimumFill: 'invalid', folder: 7, template: 'invalid', accentColor: null, openAfterExport: 'yes'});
+    await plugin.onload();
+    expect(plugin.settings).toMatchObject({minimumFill: 85, folder: '', template: 'classic', openAfterExport: true});
+    const tab = plugin.addSettingTab.mock.calls[0][0];
+    expect(tab.getSettingDefinitions().map((definition: {name: string}) => definition.name)).toEqual(['Export folder', 'Minimum page fill', 'Open PDF after export']);
+  });
+});
 
 describe('Obsidian note preparation', () => {
   it('omits frontmatter and preserves the original line offset with BOM and CRLF', () => {
