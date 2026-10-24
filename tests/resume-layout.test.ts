@@ -1,9 +1,9 @@
 import {describe,it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
-import {createPDF,type ResumeFonts} from '../src/pdf';
-import {layoutResume,RESUME_PAGE} from '../src/shared/resume-layout';
+import {createPDF,type ResumeFonts} from '@tja/resume-core/pdf';
+import {layoutResume,RESUME_PAGE} from '@tja/resume-core/layout';
 import {demoMarkdown} from './fixtures';
-import {PEPPERDINE_PAGE} from '../src/shared/resume-templates';
+import {PEPPERDINE_PAGE} from '@tja/resume-core/templates';
 // Keep regression data independent of editable or retired example notes.
 const pepperdine = `# Your Name
 City, State · name@example.com · (555) 123-4567

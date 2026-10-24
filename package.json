@@ -1,6 +1,6 @@
 {
-  "name": "tja-obsidian",
-  "version": "0.6.3",
+  "name": "@tja/resume-core",
+  "version": "0.6.4",
   "private": true,
   "type": "module",
   "license": "MIT",
@@ -10,10 +10,15 @@
     "url": "https://github.com/abenstirling/tja-obsidian.git"
   },
   "scripts": {
-    "build": "node build.mjs",
+    "build": "npm run build:core && node build.mjs",
     "check": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "lint": "eslint main.ts note.ts lint.ts src/pdf.ts src/shared/*.ts --max-warnings 0"
+    "lint": "eslint main.ts note.ts lint.ts engine/*.ts --max-warnings 0",
+    "build:metrics": "node scripts/build-font-metrics.mjs",
+    "build:core": "node scripts/build-core.mjs",
+    "prepare": "npm run build:core",
+    "precheck": "npm run build:core",
+    "pretest": "npm run build:core"
   },
   "dependencies": {
     "jspdf": "^4.0.0"
@@ -31,5 +36,62 @@
   },
   "overrides": {
     "moment": "^2.31.0"
-  }
+  },
+  "description": "The shared Markdown, layout and PDF engine for The Jobs Application website and Obsidian plugin.",
+  "exports": {
+    ".": {
+      "types": "./engine/index.ts",
+      "import": "./lib/index.js",
+      "default": "./lib/index.js"
+    },
+    "./markdown": {
+      "types": "./engine/markdown.ts",
+      "import": "./lib/markdown.js",
+      "default": "./lib/markdown.js"
+    },
+    "./layout": {
+      "types": "./engine/resume-layout.ts",
+      "import": "./lib/resume-layout.js",
+      "default": "./lib/resume-layout.js"
+    },
+    "./pagination": {
+      "types": "./engine/resume-pagination.ts",
+      "import": "./lib/resume-pagination.js",
+      "default": "./lib/resume-pagination.js"
+    },
+    "./templates": {
+      "types": "./engine/resume-templates.ts",
+      "import": "./lib/resume-templates.js",
+      "default": "./lib/resume-templates.js"
+    },
+    "./font": {
+      "types": "./engine/resume-font.ts",
+      "import": "./lib/resume-font.js",
+      "default": "./lib/resume-font.js"
+    },
+    "./pdf": {
+      "types": "./engine/pdf.ts",
+      "import": "./lib/pdf.js",
+      "default": "./lib/pdf.js"
+    },
+    "./pepper": {
+      "types": "./engine/pepperdine-layout.ts",
+      "import": "./lib/pepperdine-layout.js",
+      "default": "./lib/pepperdine-layout.js"
+    },
+    "./plumeria": {
+      "types": "./engine/plumeria-layout.ts",
+      "import": "./lib/plumeria-layout.js",
+      "default": "./lib/plumeria-layout.js"
+    },
+    "./fonts/*": "./public/fonts/*",
+    "./example.md": "./Ben Stirling example.md"
+  },
+  "files": [
+    "engine",
+    "lib",
+    "public/fonts",
+    "Ben Stirling example.md",
+    "LICENSE"
+  ]
 }

@@ -1,7 +1,7 @@
 import {jsPDF} from 'jspdf';
-import {RESUME_PAGE} from './shared/resume-layout';
-import {resumePages} from './shared/resume-pagination';
-import type {ResumeTemplateId} from './shared/resume-templates';
+import {RESUME_PAGE} from './resume-layout';
+import {resumePages} from './resume-pagination';
+import type {ResumeTemplateId} from './resume-templates';
 export type ResumeFonts=[string,string,string,string?,string?];
 // The shared layout is the linter, preview and generation check's single source of truth.
 // Browser memory only: generated PDF bytes are never sent to our server or an AI service.

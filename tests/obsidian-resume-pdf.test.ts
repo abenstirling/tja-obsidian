@@ -5,7 +5,7 @@ import {PDFDocument} from 'pdf-lib';
 import {prepareNote, outputFolder, safeBasename, starterResume, localDate, pdfBasename} from '../note';
 import {fillThreshold, pageLint} from '../lint';
 import {demoMarkdown} from './fixtures';
-import {layoutResume} from '../src/shared/resume-layout';
+import {layoutResume} from '@tja/resume-core/layout';
 
 // Execute the actual shipped CommonJS bundle with only the Obsidian host mocked.
 // This catches missing runtime imports, packaging errors, and PDF export failures.

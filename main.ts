@@ -1,10 +1,10 @@
 import {App, ItemView, MarkdownView, Notice, Plugin, PluginSettingTab, Setting, TFile, TFolder, normalizePath, type WorkspaceLeaf, type ViewStateResult} from 'obsidian';
 import fonts from 'embedded-resume-fonts';
 import examples from 'embedded-resume-examples';
-import {createPDF} from './src/pdf';
-import {type ResumeLayout} from './src/shared/resume-layout';
-import {resumePages, resumeAccent, DEFAULT_ACCENT} from './src/shared/resume-pagination';
-import {RESUME_TEMPLATES, resumeTemplate, type ResumeTemplateId} from './src/shared/resume-templates';
+import {createPDF} from '@tja/resume-core/pdf';
+import {type ResumeLayout} from '@tja/resume-core/layout';
+import {resumePages, resumeAccent, DEFAULT_ACCENT} from '@tja/resume-core/pagination';
+import {RESUME_TEMPLATES, resumeTemplate, type ResumeTemplateId} from '@tja/resume-core/templates';
 import {fillThreshold, pageLint} from './lint';
 import {outputFolder, prepareNote, pdfBasename, localDate, type ExportDetails, type PreparedNote} from './note';
 

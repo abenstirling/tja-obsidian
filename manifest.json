@@ -1,7 +1,7 @@
 {
   "id": "resume-pdf",
   "name": "The Jobs Application",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "minAppVersion": "1.5.0",
   "description": "Create beautiful resumes from Markdown. Choose a design, preview as you write, and export a one-page PDF.",
   "author": "Ben Stirling",

@@ -47,6 +47,8 @@ npm run build
 
 Builds go to `release/resume-pdf/`.
 
+The `engine/` directory is also the shared `@tja/resume-core` package used by the website. Its public exports cover Markdown parsing, layouts, templates, fonts, example Markdown, and PDF creation. The root export is safe for the server; the PDF writer has a separate `/pdf` entry. Obsidian vault access and browser downloads stay in their respective apps. Consumers pin a Git commit, so an engine upgrade is explicit and reproducible.
+
 ## License
 
 MIT. Bundled fonts retain their licenses in `public/fonts/`.

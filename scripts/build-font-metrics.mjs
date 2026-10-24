@@ -15,5 +15,5 @@ for(const [style,weight] of Object.entries({normal:'Regular',bold:'Bold',italic:
  }
  metrics[style]=glyphs;
 }
-writeFileSync(family==='NotoSans'?'src/shared/plumeria-font-metrics.json':'src/shared/resume-font-metrics.json',JSON.stringify(metrics)+'\n');
+writeFileSync(family==='NotoSans'?'engine/plumeria-font-metrics.json':'engine/resume-font-metrics.json',JSON.stringify(metrics)+'\n');
 }

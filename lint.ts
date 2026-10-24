@@ -1,4 +1,4 @@
-import type {ResumeLayout} from './src/shared/resume-layout';
+import type {ResumeLayout} from '@tja/resume-core/layout';
 
 export function fillThreshold(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) ? Math.max(1, Math.min(100, Math.round(value))) : 85;
